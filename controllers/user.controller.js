@@ -1,7 +1,13 @@
-const { response } = require('express');
+const { request, response } = require('express');
 
-const userGet = (req, res = response) => {
-    res.json('get API -- from controller');
+const userGet = (req = request, res = response) => {
+    const { name, age } = req.query;
+
+    res.json({
+        msg: 'get API -- from controller',
+        name,
+        age,
+    });
 };
 
 const userPost = (req, res = response) => {
@@ -15,7 +21,12 @@ const userPost = (req, res = response) => {
 };
 
 const userPut = (req, res = response) => {
-    res.json('put API -- from controller');
+    const { userId } = req.params;
+
+    res.json({
+        msg: 'put API -- from controller',
+        userId,
+    });
 };
 
 const userPatch = (req, res = response) => {
