@@ -1,15 +1,16 @@
 const { Router } = require('express');
 const { check } = require('express-validator');
 const {
+    fieldsValidation,
+} = require('../middlewares/fields-validation.middleware');
+const {
     userGet,
     userPost,
     userPut,
     userPatch,
     userDelete,
 } = require('../controllers/user.controller');
-const {
-    fieldsValidation,
-} = require('../middlewares/fields-validation.middleware');
+const Role = require('../models/role.model');
 
 const router = Router();
 
@@ -23,10 +24,18 @@ router.post(
             'The [password] field must must contain more than 6 characters.'
         ).isLength({ min: 6 }),
         check('email', 'Email is not valid').isEmail(),
-        check('role', 'Provided [role] is not valid.').isIn([
+        /*check('role', 'Provided [role] is not valid.').isIn([
             'USER_ROLE',
             'ADMIN_ROLE',
-        ]),
+        ]),*/
+        check('role').custom(async (role = '') => {
+            const existRole = await Role.findOne({ role });
+            if (!existRole) {
+                throw new Error(
+                    `Provided ${role} role does not exist in database.`
+                );
+            }
+        }),
         fieldsValidation,
     ],
     userPost
