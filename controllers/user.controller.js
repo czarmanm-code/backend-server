@@ -17,14 +17,6 @@ const userPost = async (req, res = response) => {
     const { name, email, password, role } = req.body;
     const user = new User({ name, email, password, role });
 
-    // Verify if email exists
-    const existsEmail = await User.findOne({ email });
-    if (existsEmail) {
-        return res.status(400).json({
-            msg: 'Email already exists.',
-        });
-    }
-
     // Encrypt password
     const salt = bcryptjs.genSaltSync(10);
     user.password = bcryptjs.hashSync(password, salt);
@@ -39,8 +31,14 @@ const userPost = async (req, res = response) => {
     });
 };
 
-const userPut = (req, res = response) => {
+const userPut = async (req, res = response) => {
     const { userId } = req.params;
+
+    const user = await User.findById(userId);
+    console.log('user', user);
+
+    const { name } = await User.findOne({ _id: userId });
+    console.log('name:', name);
 
     res.json({
         msg: 'put API -- from controller',
