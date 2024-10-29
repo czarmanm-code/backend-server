@@ -3,13 +3,12 @@ const bcryptjs = require('bcryptjs');
 
 const User = require('../models/user.model');
 
-const userGet = (req = request, res = response) => {
-    const { name, age } = req.query;
+const userGet = async (req = request, res = response) => {
+    const users = await User.find();
 
     res.json({
-        msg: 'get API -- from controller',
-        name,
-        age,
+        qty: users.length,
+        users,
     });
 };
 
@@ -26,7 +25,6 @@ const userPost = async (req, res = response) => {
     await user.save();
 
     res.json({
-        msg: 'post API -- from controller',
         user,
     });
 };
@@ -45,7 +43,6 @@ const userPut = async (req, res = response) => {
     const user = await User.findByIdAndUpdate(userId, rest);
 
     res.json({
-        msg: 'put API -- from controller',
         user,
     });
 };
