@@ -33,16 +33,20 @@ const userPost = async (req, res = response) => {
 
 const userPut = async (req, res = response) => {
     const { userId } = req.params;
+    // eslint-disable-next-line no-unused-vars
+    const { _id, password, google, email, ...rest } = req.body;
 
-    const user = await User.findById(userId);
-    console.log('user', user);
+    if (password) {
+        // Encrypt password
+        const salt = bcryptjs.genSaltSync(10);
+        rest.password = bcryptjs.hashSync(password, salt);
+    }
 
-    const { name } = await User.findOne({ _id: userId });
-    console.log('name:', name);
+    const user = await User.findByIdAndUpdate(userId, rest);
 
     res.json({
         msg: 'put API -- from controller',
-        userId,
+        user,
     });
 };
 

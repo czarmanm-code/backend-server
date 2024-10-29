@@ -4,7 +4,11 @@ const { check } = require('express-validator');
 const {
     fieldsValidation,
 } = require('../middlewares/fields-validation.middleware');
-const { isAValidRole, existsEmail } = require('../helpers/db-validators');
+const {
+    isAValidRole,
+    existsEmail,
+    existsUserById,
+} = require('../helpers/db-validators');
 const {
     userGet,
     userPost,
@@ -24,14 +28,23 @@ router.post(
             'password',
             'The [password] field must must contain more than 6 characters.'
         ).isLength({ min: 6 }),
-        check('email', 'Email is not valid').isEmail(),
-        check('email', 'Email is not valid').custom(existsEmail),
+        check('email', 'Email is not valid.').isEmail(),
+        check('email', 'Provided email already exists.').custom(existsEmail),
         check('role').custom((role) => isAValidRole(role)),
         fieldsValidation,
     ],
     userPost
 );
-router.put('/:userId', userPut);
+router.put(
+    '/:userId',
+    [
+        check('userId', 'The user id provided is not valid.').isMongoId(),
+        check('userId').custom(existsUserById),
+        check('role').custom((role) => isAValidRole(role)),
+        fieldsValidation,
+    ],
+    userPut
+);
 router.patch('/', userPatch);
 router.delete('/', userDelete);
 
