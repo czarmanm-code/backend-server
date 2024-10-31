@@ -4,13 +4,32 @@ const bcryptjs = require('bcryptjs');
 const User = require('../models/user.model');
 
 const userGet = async (req = request, res = response) => {
-    const { limit = 5, from = 0 } = req.query;
-    const users = await User.find().limit(limit).skip(from);
+    try {
+        // Validate query parameters
+        const limit = Math.max(
+            1,
+            Math.min(parseInt(req.query.limit) || 5, 100)
+        ); // Limit to 100
+        const from = Math.max(0, parseInt(req.query.from) || 0); // Ensure 'from' is non-negative
 
-    res.json({
-        qty: users.length,
-        users,
-    });
+        // Fetch users from the database
+        const users = await User.find().limit(limit).skip(from);
+
+        // Respond with user data
+        res.status(200).json({
+            total: await User.countDocuments(), // Total count of users
+            limit,
+            from,
+            count: users.length,
+            users,
+        });
+    } catch (error) {
+        // Handle errors
+        console.error('Error fetching users:', error);
+        res.status(500).json({
+            message: 'Internal server error',
+        });
+    }
 };
 
 const userPost = async (req, res = response) => {
