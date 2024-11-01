@@ -11,23 +11,32 @@ const userGet = async (req = request, res = response) => {
             Math.min(parseInt(req.query.limit) || 5, 100)
         ); // Limit to 100
         const from = Math.max(0, parseInt(req.query.from) || 0); // Ensure 'from' is non-negative
+        // Query to get only active users
+        const query = { status: true };
 
-        // Fetch users from the database
-        const users = await User.find().limit(limit).skip(from);
+        // Fetch total count and users from the database
+        const [total, users] = await Promise.all([
+            User.countDocuments(query),
+            User.find(query).limit(limit).skip(from),
+        ]);
 
         // Respond with user data
         res.status(200).json({
-            total: await User.countDocuments(), // Total count of users
+            total,
             limit,
             from,
             count: users.length,
             users,
         });
     } catch (error) {
-        // Handle errors
+        // Handle errors with more context
         console.error('Error fetching users:', error);
-        res.status(500).json({
+        return res.status(500).json({
             message: 'Internal server error',
+            error:
+                process.env.NODE_ENV === 'development'
+                    ? error.message
+                    : undefined, // Optionally expose error details in development
         });
     }
 };
