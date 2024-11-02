@@ -29,14 +29,10 @@ const userGet = async (req = request, res = response) => {
             users,
         });
     } catch (error) {
-        // Handle errors with more context
+        // Handle errors
         console.error('Error fetching users:', error);
-        return res.status(500).json({
+        res.status(500).json({
             message: 'Internal server error',
-            error:
-                process.env.NODE_ENV === 'development'
-                    ? error.message
-                    : undefined, // Optionally expose error details in development
         });
     }
 };
@@ -80,8 +76,36 @@ const userPatch = (req, res = response) => {
     res.json('patch API -- from controller');
 };
 
-const userDelete = (req, res = response) => {
-    res.json('delete API -- from controller');
+const userDelete = async (req, res = response) => {
+    const { userId } = req.params;
+
+    try {
+        // Find and "delete" the user by updating their status
+        const user = await User.findOneAndUpdate(
+            { _id: userId, status: true },
+            { status: false },
+            { new: true }
+        );
+
+        // Check if the user was found
+        if (!user) {
+            return res.status(404).json({
+                message: 'User not found',
+            });
+        }
+
+        // Respond with the updated user data
+        return res.status(200).json({
+            message: 'User deleted successfully',
+            user,
+        });
+    } catch (error) {
+        // Handle any errors that occur during the operation
+        console.error('Error deleting user:', error);
+        return res.status(500).json({
+            message: 'Internal server error',
+        });
+    }
 };
 
 module.exports = {
